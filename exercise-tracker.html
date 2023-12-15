@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>운동 기록</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            margin: 50px;
+            background-color: #f5f5f5;
+        }
+
+        table {
+            width: 50%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        th,
+        td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        input {
+            width: 50%;
+            padding: 8px;
+            margin: 10px 0;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 50%;
+            padding: 8px;
+            margin-top: 10px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #exerciseTable {
+            margin-top: 20px;
+        }
+
+        #totalCalories {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        #caloriesMessage {
+            margin-top: 10px;
+            color: green;
+            font-weight: bold;
+        }
+
+        #goalCalories {
+            margin-top: 10px;
+        }
+
+        #goalMessage {
+            margin-top: 10px;
+            color: rgb(0, 204, 255);
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>운동 기록</h2>
+
+    <label for="goalCalories">목표 칼로리:</label>
+    <input type="number" id="goalCalories" placeholder="목표 칼로리 입력">
+    <button onclick="setGoal()">목표 설정</button>
+    <br>
+    <label for="exercise">운동 종류:</label>
+    <input type="text" id="exercise" placeholder="예: 조깅, 수영 등">
+    <br>
+    <label for="caloriesBurned">소비한 칼로리:</label>
+    <input type="number" id="caloriesBurned" placeholder="칼로리 입력">
+
+    <button onclick="addExercise()">운동 추가</button>
+    <button onclick="clearData()">데이터 삭제</button>
+
+    <table id="exerciseTable">
+        <thead>
+            <tr>
+                <th>운동</th>
+                <th>소비한 칼로리</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <div id="totalCalories">총 소비한 칼로리: 0 kcal</div>
+    <div id="caloriesMessage"></div>
+
+    <div id="goalMessage"></div>
+
+    <script>
+        var totalBurnedCalories = 0;
+        var goalCalories = 0;
+
+        window.onload = function () {
+            loadData();
+        };
+
+        function setGoal() {
+            goalCalories = parseFloat(document.getElementById('goalCalories').value);
+
+            if (isNaN(goalCalories) || goalCalories <= 0) {
+                alert('목표 칼로리를 올바르게 입력하세요.');
+                return;
+            }
+
+            var goalCaloriesElement = document.getElementById('goalCalories');
+            goalCaloriesElement.innerHTML = '목표 칼로리: ' + goalCalories.toFixed(2) + ' kcal';
+
+            var goalMessage = document.getElementById('goalMessage');
+            goalMessage.innerHTML = '';
+
+            updateTotalCalories();
+        }
+
+        function loadData() {
+            var exercises = JSON.parse(localStorage.getItem('exercises')) || [];
+            if (exercises.length > 0) {
+                for (var i = 0; i < exercises.length; i++) {
+                    addExerciseToTable(exercises[i].exercise, exercises[i].caloriesBurned);
+                }
+                updateTotalCalories();
+            }
+
+            goalCalories = parseFloat(localStorage.getItem('goalCalories')) || 0;
+            var goalCaloriesElement = document.getElementById('goalCalories');
+            goalCaloriesElement.value = goalCalories;
+
+            var goalMessage = document.getElementById('goalMessage');
+            goalMessage.innerHTML = '';
+        }
+
+        function saveGoal() {
+            localStorage.setItem('goalCalories', JSON.stringify(goalCalories));
+        }
+
+        function saveData(exercise, caloriesBurned) {
+            var exercises = JSON.parse(localStorage.getItem('exercises')) || [];
+            exercises.push({ exercise: exercise, caloriesBurned: caloriesBurned });
+            localStorage.setItem('exercises', JSON.stringify(exercises));
+        }
+
+        function clearData() {
+            localStorage.removeItem('exercises');
+
+            var exerciseTable = document.getElementById('exerciseTable').getElementsByTagName('tbody')[0];
+            exerciseTable.innerHTML = '';
+
+            totalBurnedCalories = 0;
+
+            var caloriesMessage = document.getElementById('caloriesMessage');
+            caloriesMessage.innerHTML = '';
+
+            var goalMessage = document.getElementById('goalMessage');
+            goalMessage.innerHTML = '';
+
+            updateTotalCalories();
+        }
+
+        function addExercise() {
+            var exercise = document.getElementById('exercise').value;
+            var caloriesBurned = parseFloat(document.getElementById('caloriesBurned').value);
+
+            if (!exercise || isNaN(caloriesBurned)) {
+                alert('운동 정보를 입력하세요.');
+                return;
+            }
+
+            if (isExerciseAlreadyAdded(exercise)) {
+                alert('이미 추가된 운동입니다.');
+                return;
+            }
+
+            addExerciseToTable(exercise, caloriesBurned);
+
+            totalBurnedCalories += caloriesBurned;
+
+            document.getElementById('exercise').value = '';
+            document.getElementById('caloriesBurned').value = '';
+
+            updateTotalCalories();
+
+            var caloriesMessage = document.getElementById('caloriesMessage');
+            caloriesMessage.innerHTML = '"' + exercise + '" 운동이 추가되었습니다.';
+
+            displayGoalMessage();
+        }
+
+        function addExerciseToTable(exercise, caloriesBurned) {
+            var exerciseTable = document.getElementById('exerciseTable').getElementsByTagName('tbody')[0];
+            var exerciseRow = exerciseTable.insertRow(exerciseTable.rows.length);
+            var exerciseCell1 = exerciseRow.insertCell(0);
+            var exerciseCell2 = exerciseRow.insertCell(1);
+
+            exerciseCell1.innerHTML = exercise;
+            exerciseCell2.innerHTML = caloriesBurned + ' kcal';
+
+            saveData(exercise, caloriesBurned);
+        }
+
+        function updateTotalCalories() {
+            var totalCaloriesElement = document.getElementById('totalCalories');
+            totalCaloriesElement.innerHTML = '총 소비한 칼로리: ' + totalBurnedCalories.toFixed(2) + ' kcal';
+        }
+
+        function isExerciseAlreadyAdded(newExercise) {
+            var exerciseTable = document.getElementById('exerciseTable').getElementsByTagName('tbody')[0];
+            for (var i = 0; i < exerciseTable.rows.length; i++) {
+                var existingExercise = exerciseTable.rows[i].cells[0].innerHTML;
+                if (existingExercise.toLowerCase() === newExercise.toLowerCase()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function displayGoalMessage() {
+            if (goalCalories > 0 && totalBurnedCalories > goalCalories) {
+                var goalMessage = document.getElementById('goalMessage');
+                goalMessage.innerHTML = '오늘의 목표 칼로리를 초과했습니다!';
+            }
+        }
+    </script>
+
+</body>
+
+</html>

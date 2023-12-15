@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>메인 페이지</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            margin: 50px;
+            background-color: #f5f5f5;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        #banner {
+            background-color: #3498db; 
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .card-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            width: 200px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 15px;
+            overflow: hidden;
+            transition: transform 0.3s ease-in-out;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+
+        .card-content {
+            padding: 15px;
+        }
+
+        button {
+            padding: 15px;
+            margin: 10px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    
+    <div id="banner">
+        <h3>오늘의 칼로리 계산</h3>
+        <p>오늘 섭취한 음식과 소모한 칼로리를 기록하세요!</p>
+    </div>
+
+    <h2>칼로리 관리</h2>
+
+    <div class="card-container">
+        <div class="card" onclick="navigateTo('food-calculator.html')">
+            <div class="card-content">
+                <h4>음식 칼로리 계산기</h4>
+                <p>음식을 추가하고 칼로리를 계산하세요.</p>
+            </div>
+        </div>
+        <div class="card" onclick="navigateTo('exercise-tracker.html')">
+            <div class="card-content">
+                <h4>운동 기록</h4>
+                <p>하루 동안 한 운동을 기록하세요.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function navigateTo(page) {
+            window.location.href = page;
+        }
+    </script>
+
+</body>
+</html>

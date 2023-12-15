@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>음식 칼로리 계산기</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            margin: 50px;
+            background-color: #f5f5f5;
+        }
+
+        table {
+            width: 50%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        input {
+            width: 50%;
+            padding: 8px;
+            margin: 10px 0;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 50%;
+            padding: 8px;
+            margin-top: 10px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #foodTable {
+            margin-top: 20px;
+        }
+
+        #totalCalories {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        #caloriesMessage {
+            margin-top: 10px;
+            color: #333;
+        }
+
+        #goalCalories {
+            margin-top: 10px;
+        }
+
+        #goalMessage {
+            margin-top: 10px;
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>음식 칼로리 계산기</h2>
+
+    <label for="goalCalories">목표 칼로리:</label>
+    <input type="number" id="goalCalories" placeholder="목표 칼로리 입력">
+    <button onclick="setGoal()">목표 설정</button>
+    <br>
+    <label for="food">음식:</label>
+    <input type="text" id="food" placeholder="예: 밥, 김치찌개 등">
+    <br>
+    <label for="caloriesConsumed">칼로리 (1인분):</label>
+    <input type="number" id="caloriesConsumed" placeholder="칼로리 입력">
+
+    <button onclick="addFood()">음식 추가</button>
+    <button onclick="clearData()">데이터 삭제</button>
+
+    <table id="foodTable">
+        <thead>
+            <tr>
+                <th>음식</th>
+                <th>칼로리 (1인분)</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <div id="totalCalories">총 섭취한 칼로리: 0 kcal</div>
+    <div id="caloriesMessage"></div>
+
+    <div id="goalMessage"></div>
+
+    <script>
+        var totalConsumedCalories = 0;
+        var goalCalories = 0;
+
+        window.onload = function () {
+            loadData();
+        };
+
+        function setGoal() {
+            goalCalories = parseFloat(document.getElementById('goalCalories').value);
+
+            if (isNaN(goalCalories) || goalCalories <= 0) {
+                alert('목표 칼로리를 올바르게 입력하세요.');
+                return;
+            }
+
+            var goalCaloriesElement = document.getElementById('goalCalories');
+            goalCaloriesElement.innerHTML = '목표 칼로리: ' + goalCalories.toFixed(2) + ' kcal';
+
+            var goalMessage = document.getElementById('goalMessage');
+            goalMessage.innerHTML = '';
+
+            updateTotalCalories();
+        }
+
+        function loadData() {
+            var foods = JSON.parse(localStorage.getItem('foods')) || [];
+            if (foods.length > 0) {
+                for (var i = 0; i < foods.length; i++) {
+                    addFoodToTable(foods[i].food, foods[i].caloriesConsumed);
+                }
+                updateTotalCalories();
+            }
+
+            goalCalories = parseFloat(localStorage.getItem('goalCalories')) || 0;
+            var goalCaloriesElement = document.getElementById('goalCalories');
+            goalCaloriesElement.value = goalCalories;
+        }
+
+        function saveData(food, caloriesConsumed) {
+            var foods = JSON.parse(localStorage.getItem('foods')) || [];
+            foods.push({ food: food, caloriesConsumed: caloriesConsumed });
+            localStorage.setItem('foods', JSON.stringify(foods));
+        }
+
+        function clearData() {
+            localStorage.removeItem('foods');
+
+            var foodTable = document.getElementById('foodTable').getElementsByTagName('tbody')[0];
+            foodTable.innerHTML = '';
+
+            totalConsumedCalories = 0;
+
+            var goalMessage = document.getElementById('goalMessage');
+            goalMessage.innerHTML = '';
+
+            updateTotalCalories();
+        }
+
+        function addFood() {
+            var food = document.getElementById('food').value;
+            var caloriesConsumed = parseFloat(document.getElementById('caloriesConsumed').value);
+
+            if (!food || isNaN(caloriesConsumed)) {
+                alert('음식 정보를 입력하세요.');
+                return;
+            }
+
+            if (isFoodAlreadyAdded(food)) {
+                alert('이미 추가된 음식입니다.');
+                return;
+            }
+
+            addFoodToTable(food, caloriesConsumed);
+
+            totalConsumedCalories += caloriesConsumed;
+
+            document.getElementById('food').value = '';
+            document.getElementById('caloriesConsumed').value = '';
+
+            updateTotalCalories();
+
+            displayGoalMessage();
+        }
+
+        function addFoodToTable(food, caloriesConsumed) {
+            var foodTable = document.getElementById('foodTable').getElementsByTagName('tbody')[0];
+            var foodRow = foodTable.insertRow(foodTable.rows.length);
+            var foodCell1 = foodRow.insertCell(0);
+            var foodCell2 = foodRow.insertCell(1);
+
+            foodCell1.innerHTML = food;
+            foodCell2.innerHTML = caloriesConsumed + ' kcal';
+
+            saveData(food, caloriesConsumed);
+        }
+
+        function updateTotalCalories() {
+            var totalCaloriesElement = document.getElementById('totalCalories');
+            totalCaloriesElement.innerHTML = '총 섭취한 칼로리: ' + totalConsumedCalories.toFixed(2) + ' kcal';
+        }
+
+        function isFoodAlreadyAdded(newFood) {
+            var foodTable = document.getElementById('foodTable').getElementsByTagName('tbody')[0];
+            for (var i = 0; i < foodTable.rows.length; i++) {
+                var existingFood = foodTable.rows[i].cells[0].innerHTML;
+                if (existingFood.toLowerCase() === newFood.toLowerCase()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function displayGoalMessage() {
+            if (goalCalories > 0 && totalConsumedCalories > goalCalories) {
+                var goalMessage = document.getElementById('goalMessage');
+                goalMessage.innerHTML = '오늘 목표한 칼로리를 초과했습니다.';
+            }
+        }
+    </script>
+
+</body>
+</html>
